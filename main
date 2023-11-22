@@ -1,3 +1,42 @@
-if .... == NULL{
-printf("faux, erreur");
+#include <stdio.h>
+
+//contraintes d'exclusion :
+//deux opérations ne peuvent pas être effectuées par la même station
+//
+#include "contraintes.h"
+
+int main() {
+    // Utilisation des fonctions de contraintes
+    ExclusionPair exclusions[20];
+    int nombreContraintes;
+    int operation1 = 1;
+    int operation2 = 2;
+    GraphePrecedence graphe;
+    initialiserGraphe(&graphe);
+
+
+    chargerContraintesExclusion(exclusions, &nombreContraintes);
+
+    // Test de contrainte d'exclusion
+    if (estExclue(exclusions, nombreContraintes, operation1, operation2)) {
+        printf("Les operations %d et %d ne peuvent pas etre affectees a la meme station.\n",operation1,operation2);
+    } else {
+        printf("Les operations %d et %d peuvent etre affectees a la meme station.\n",operation1,operation2);
+    }
+
+
+    // Ajouter des relations de précédence
+    ajouterRelationPrecedence(&graphe, 1, 3);
+    ajouterRelationPrecedence(&graphe, 3, 5);
+
+    // Test de la contrainte de précédence
+    if (doitPreceder(&graphe, 2, 3)) {
+        printf("L'operation 1 doit etre effectuee avant l'operation 3.\n");
+    } else {
+        printf("L'operation 1 n'a pas de contrainte de precedence avec l'operation 3.\n");
+    }
+
+
+
+    return 0;
 }
