@@ -13,7 +13,6 @@ int main() {
     int operation2 = 2;
     GraphePrecedence graphe;
     initialiserGraphe(&graphe);
-
     chargerContraintesExclusion(exclusions, &nombreContraintes);
 
     // Test de contrainte d'exclusion
@@ -37,7 +36,7 @@ int main() {
     // Utiliser la fonction pour charger le temps de cycle maximal
     int tempsCycleMaximal = chargerTempsCycleMaximal();
 
-    // Vérifier si le chargement du temps de cycle a réussi
+    // Test contrainte de temps de cycle
     if (tempsCycleMaximal == -1) {
         // Gérer l'erreur ici, par exemple, en utilisant une valeur par défaut ou en quittant le programme.
         printf("Erreur lors du chargement du temps de cycle maximal. Utilisation de la valeur par défaut.\n");
