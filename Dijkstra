@@ -1,0 +1,66 @@
+void pcc_Dijkstra(Graphe* graphe,int Sommet_depart, int Sommet_fin){
+    pArc Arc_traite;
+    int Nouveau_sommet_traite, sommet_suivant, poids;
+
+    /// Création d'une file vide
+    File File_graphe = fileVide(File_graphe);
+
+    /// Initialisation des distances à quasiment l'infini et des prédécesseurs à -1
+    int* distance = (int*)malloc(graphe->ordre * sizeof(int));
+    int* predecesseur = (int*)malloc(graphe->ordre * sizeof(int));
+
+    for (int i = 0; i < graphe->ordre; i++) {
+        distance[i] = 999999999;
+        predecesseur[i] = -1;
+    }
+    /// On met la distance du sommet de départ jusqu'à lui-meme à 0
+    distance[Sommet_depart] = 0;
+
+    /// On enfile
+    enfiler(File_graphe, Sommet_depart);
+
+
+    /// Traitement du sommet suivant
+    while (File_graphe->tete != NULL) {
+        Nouveau_sommet_traite = defiler(File_graphe);
+        Arc_traite = graphe->pSommet[Nouveau_sommet_traite]->arc;
+
+
+        /// Parcours du graphe et principe de l'algorithme de Dijkstra
+        while (Arc_traite != NULL) {
+
+            sommet_suivant = Arc_traite->sommet;
+            poids = Arc_traite->poids;
+
+            if (distance[Nouveau_sommet_traite] + poids < distance[sommet_suivant]) {
+                distance[sommet_suivant] = distance[Nouveau_sommet_traite] + poids;
+                predecesseur[sommet_suivant] = Nouveau_sommet_traite;
+                enfiler(File_graphe, sommet_suivant);
+            }
+
+            Arc_traite = Arc_traite->arc_suivant;
+        }
+    }
+
+    /// AFFICHAGE DU RESULTAT
+    int Remise_dans_ordre[10];
+    int i_position=0;
+
+    printf("Chemin le plus court de %d %c %d : ", Sommet_depart, 133, Sommet_fin);
+    int sommet_courant = Sommet_fin;
+    while (sommet_courant != -1) {
+        Remise_dans_ordre[i_position]=sommet_courant;
+        i_position=i_position+1;
+        sommet_courant = predecesseur[sommet_courant];
+    }
+    for (int i=i_position-1;i>=0;i--) {
+        printf ("%d - ",Remise_dans_ordre[i]);
+    }
+    printf("\nDistance : %d -\n", distance[Sommet_fin]);
+
+
+    /// Libération de la mémoirde
+    free(File_graphe);
+    free(distance);
+    free(predecesseur);
+}
