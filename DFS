@@ -1,0 +1,132 @@
+
+#include "Graphe.h"
+#include <string.h>
+
+// Création file
+
+struct _cellule {
+    int element;
+    struct _cellule *suivant;
+};
+typedef struct _cellule * Cellule;
+struct _file {
+    int longueur;
+    Cellule tete;
+    Cellule queue;
+};
+typedef struct _file * File;
+
+File fileVide(File F) {
+    F = (File) malloc(sizeof(struct _file));
+    if (F == NULL) printf("erreur allocation fileVide");
+    F->longueur = 0;
+    F->tete = F->queue = NULL;
+    return(F);
+}
+
+int longueur(File F) {
+    if (F == NULL) printf("file existe pas - longueur");
+    return (F->longueur);
+}
+
+void enfiler(File F, int element) {
+    Cellule cellule;
+    if (F == NULL) printf ("file n'existe pas - enfiler");
+    cellule = (Cellule)malloc(sizeof(struct _cellule));
+    if (cellule == NULL) printf("erreur allocation memoire - enfiler");
+    cellule->element = element;
+    cellule->suivant = NULL;
+    if (longueur(F) == 0){
+        F->tete = F->queue = cellule;
+    }
+    else {
+        F->queue->suivant = cellule;
+        F->queue = cellule;
+    }
+    ++(F->longueur);
+}
+
+int defiler(File F) {
+    Cellule cellule;
+    int element;
+    if (F == NULL || longueur(F) == 0) printf("File existe pas - defilement");
+    cellule = F->tete;
+    element = cellule->element;
+    if (longueur(F) == 1){
+        F->tete = F->queue = NULL;
+    }
+    else {
+        F->tete = F->tete->suivant;
+    }
+    free(cellule);
+    --(F->longueur);
+    return(element);
+}
+
+
+/// VOICI NOTRE CODE POUR LE TP2
+ void BFS_parcours_en_largeur(Graphe* graphe,int Sommet_depart, int Sommet_fin){
+    int Nouveau_sommet_traite, Sommet_suivant;
+    pArc Arc_traite;
+
+    // Création d'une file vide
+    File File_graphe=fileVide(File_graphe);
+
+    /// Création du tableau de marquage pour identifier les sommets visités et initialisation à 0
+    int * Marquage = (int*)malloc(graphe->ordre * sizeof(int));
+    for (int i=0;i<graphe->ordre;i++) Marquage[i]=0;
+
+    /// On enfile et on marque le sommet de départ
+    enfiler(File_graphe,Sommet_depart);
+    Marquage[Sommet_depart]=1;
+    printf("\n(BFS) : ");
+
+    ///Traitement du sommet suivant
+    while (File_graphe->tete != NULL){
+        Nouveau_sommet_traite= defiler(File_graphe);
+        Arc_traite=graphe->pSommet[Nouveau_sommet_traite]->arc;
+
+        /// Condition d'arrêt si le sommet de fin de parcours est inférieur à l'ordre du graphe
+        if (Nouveau_sommet_traite<=Sommet_fin) {
+            printf("%d-",Nouveau_sommet_traite);
+
+            /// Parcours du graphe en largeur et marquage des sommets traités
+            while (Arc_traite != NULL) {
+                Sommet_suivant = Arc_traite->sommet;
+                if (Marquage[Sommet_suivant] == 0) {
+                    enfiler(File_graphe, Sommet_suivant);
+                    Marquage[Sommet_suivant] = 1;
+                }
+                Arc_traite=Arc_traite->arc_suivant;
+            }
+        }
+    }
+    void DFS_parcours_en_profondeur(Graphe* graphe,int Sommet_traite, int *Marquage, int Sommet_fin)
+    {
+        int Nouveau_sommet_traite=Sommet_traite; // Permet d'accueillir le sommet suivant
+        Marquage[Sommet_traite]=1; // marquage du sommet en cours de traitement
+        printf("\n(DFS) : %d",Sommet_traite);
+
+        /// Passage au somment suivant
+        pArc Arc_traite=graphe->pSommet[Sommet_traite]->arc;
+
+        /// Boucle qui parcours le chemin jusqu'à NULL pour chaque sommet
+        while (Arc_traite != NULL) {
+            Nouveau_sommet_traite = Arc_traite->sommet;
+            /// Si le somment n'a pas encore été traité, alors appel récursif de la fonction DSF...
+            if (Marquage[Nouveau_sommet_traite] == 0  ) {
+                if (Nouveau_sommet_traite!=Sommet_fin)
+                    DFS_parcours_en_profondeur(graphe, Nouveau_sommet_traite, Marquage, Sommet_fin);
+                else {
+                    Arc_traite=graphe->pSommet[Sommet_traite]->arc;
+                    Nouveau_sommet_traite = Arc_traite->sommet;
+                    Marquage[Nouveau_sommet_traite]=1; // marquage du sommet en cours de traitement
+                    printf("\n(DFS) : %d -",Nouveau_sommet_traite);
+                    exit(0);
+                }
+            }
+            Arc_traite = Arc_traite->arc_suivant;
+        }
+    }
+    free(File_graphe);
+}
