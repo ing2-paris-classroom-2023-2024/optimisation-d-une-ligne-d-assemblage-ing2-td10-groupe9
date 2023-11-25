@@ -1,6 +1,6 @@
 #include "contraintes.h"
 #include <stdio.h>
-
+  
 //contrainte exclusion  :
 
 void chargerContraintesExclusion(ExclusionPair exclusions[], int* nombreContraintes) {
