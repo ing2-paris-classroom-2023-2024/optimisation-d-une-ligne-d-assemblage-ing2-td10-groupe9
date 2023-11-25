@@ -1,6 +1,6 @@
 #ifndef PROJET_CONTRAINTES_H
 #define PROJET_CONTRAINTES_H
-#define MAX_OPERATIONS 35
+#define MAX_OPERATIONS 100
 
 //c1
 typedef struct {
@@ -28,6 +28,7 @@ typedef struct {
 void chargerContraintesExclusion(ExclusionPair exclusions[], int* nombreContraintes);
 int estExclue(ExclusionPair exclusions[], int nombreContraintes, int operation1, int operation2);
 //c2
+void chargerContraintesPrecedence(GraphePrecedence *graphe);
 void initialiserGraphe(GraphePrecedence *graphe);
 void ajouterRelationPrecedence(GraphePrecedence *graphe, int operationPrecedente, int operationSuivante);
 int doitPreceder(GraphePrecedence *graphe, int operationPrecedente, int operationSuivante);
@@ -37,9 +38,8 @@ void initialiserContraintesPrecedence(ContraintesPrecedence *contraintes);
 void initialiserContraintesTempsCycle(ContraintesTempsCycle *contraintes);
 int respecteTempsCycle(ContraintesTempsCycle *contraintes, int dureeTotale);
 void libererMemoireContraintes(ContraintesExclusion *exclusions, ContraintesPrecedence *precedence, ContraintesTempsCycle *tempsCycle);
-
 int chargerTempsCycleMaximal();
-//3
+
 
 
 #endif //PROJET_CONTRAINTES_H
