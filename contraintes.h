@@ -32,7 +32,7 @@ void chargerContraintesPrecedence(GraphePrecedence *graphe);
 void initialiserGraphe(GraphePrecedence *graphe);
 void ajouterRelationPrecedence(GraphePrecedence *graphe, int operationPrecedente, int operationSuivante);
 int doitPreceder(GraphePrecedence *graphe, int operationPrecedente, int operationSuivante);
-//c3
+//c3 : non opérationnel
 void initialiserContraintesExclusion(ContraintesExclusion *contraintes);
 void initialiserContraintesPrecedence(ContraintesPrecedence *contraintes);
 void initialiserContraintesTempsCycle(ContraintesTempsCycle *contraintes);
@@ -40,13 +40,6 @@ int respecteTempsCycle(ContraintesTempsCycle *contraintes, int dureeTotale);
 void libererMemoireContraintes(ContraintesExclusion *exclusions, ContraintesPrecedence *precedence, ContraintesTempsCycle *tempsCycle);
 int chargerTempsCycleMaximal();
 
-////c3
-void initialiserContraintesExclusion(ContraintesExclusion *contraintes);
-void initialiserContraintesPrecedence(ContraintesPrecedence *contraintes);
-void initialiserContraintesTempsCycle(ContraintesTempsCycle *contraintes);
-int respecteTempsCycle(ContraintesTempsCycle *contraintes, int dureeTotale);
-void libererMemoireContraintes(ContraintesExclusion *exclusions, ContraintesPrecedence *precedence, ContraintesTempsCycle *tempsCycle);
-int chargerTempsCycleMaximal();
 
 
 
