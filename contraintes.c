@@ -1,7 +1,7 @@
 #include "contraintes.h"
 #include <stdio.h>
   
-//contrainte exclusion  :
+//contrainte exclusion //:
 
 void chargerContraintesExclusion(ExclusionPair exclusions[], int* nombreContraintes) {
     FILE* fichier = fopen("exclusions.txt", "r"); //ouverture du fichier
