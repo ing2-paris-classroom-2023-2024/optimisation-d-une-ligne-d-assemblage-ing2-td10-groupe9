@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 //contrainte exclusion  :
-
+ 
 void chargerContraintesExclusion(ExclusionPair exclusions[], int* nombreContraintes) {
     FILE* fichier = fopen("exclusion.txt", "r"); //ouverture du fichier
     if (fichier == NULL) {
