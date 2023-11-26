@@ -136,3 +136,55 @@ int trouverStationMin(int operationsParStation[], int nombreStations) {
     }
     return stationMin;
 }
+//menu ? : #include <stdio.h>
+#include <stdlib.h>
+
+void option1() {
+    printf("Option 1 sélectionnée!\n");
+}
+
+void option2() {
+    printf("Option 2 sélectionnée!\n");
+}
+
+void option3() {
+    printf("Option 3 sélectionnée!\n");
+}
+
+int main() {
+    int choix;
+
+    do {
+        // Affichage du menu
+        printf("\nMenu:\n");
+        printf("1. Option 1\n");
+        printf("2. Option 2\n");
+        printf("3. Option 3\n");
+        printf("0. Quitter\n");
+        printf("Choisissez une option : ");
+        
+        // Lecture du choix de l'utilisateur
+        scanf("%d", &choix);
+
+        // Traitement du choix de l'utilisateur
+        switch (choix) {
+            case 1:
+                option1();
+                break;
+            case 2:
+                option2();
+                break;
+            case 3:
+                option3();
+                break;
+            case 0:
+                printf("Au revoir!\n");
+                break;
+            default:
+                printf("Choix non valide. Veuillez réessayer.\n");
+        }
+
+    } while (choix != 0);
+
+    return 0;
+}
