@@ -40,6 +40,14 @@ int respecteTempsCycle(ContraintesTempsCycle *contraintes, int dureeTotale);
 void libererMemoireContraintes(ContraintesExclusion *exclusions, ContraintesPrecedence *precedence, ContraintesTempsCycle *tempsCycle);
 int chargerTempsCycleMaximal();
 
+////c3
+void initialiserContraintesExclusion(ContraintesExclusion *contraintes);
+void initialiserContraintesPrecedence(ContraintesPrecedence *contraintes);
+void initialiserContraintesTempsCycle(ContraintesTempsCycle *contraintes);
+int respecteTempsCycle(ContraintesTempsCycle *contraintes, int dureeTotale);
+void libererMemoireContraintes(ContraintesExclusion *exclusions, ContraintesPrecedence *precedence, ContraintesTempsCycle *tempsCycle);
+int chargerTempsCycleMaximal();
+
 
 
 #endif //PROJET_CONTRAINTES_H
