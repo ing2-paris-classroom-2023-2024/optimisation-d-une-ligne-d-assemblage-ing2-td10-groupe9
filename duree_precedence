@@ -41,19 +41,20 @@ int readPrecedences(const char *filename, Edge **graph, int *numEdges) {
 }
 
 // Fonction pour afficher le graphe de précédence
+// Fonction pour afficher le graphe de précédence avec les durées associées
 void printGraph(const Edge *graph, int numEdges, const duree *sommets, int numSommets) {
-    printf("Graphe de precedence :\n");
+    printf("Graphe de précédence :\n");
     for (int i = 0; i < numEdges; i++) {
-        // Trouver la durée associée au sommet 'from'
-        double dureeFrom = -1.0;  // Valeur par défaut si le sommet n'est pas trouvé
+        // Trouver la durée associée au sommet 'to'
+        double dureeTo = -1.0;  // Valeur par défaut si le sommet n'est pas trouvé
         for (int j = 0; j < numSommets; j++) {
-            if (graph[i].from == sommets[j].numero) {
-                dureeFrom = sommets[i-1].duree;
+            if (graph[i].to == sommets[j].numero) {
+                dureeTo = sommets[j].duree;
                 break;
             }
         }
 
-        printf("%d -> %d, duree : %g\n", graph[i].from, graph[i].to, dureeFrom);
+        printf("%d -> %d, duree : %g\n", graph[i].from, graph[i].to, dureeTo);
     }
 }
 
@@ -95,8 +96,5 @@ int main() {
         return 1;  // Code d'erreur
     }
 }
-
-
-
 
 
