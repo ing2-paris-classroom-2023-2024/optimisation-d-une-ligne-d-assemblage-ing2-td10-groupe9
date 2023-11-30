@@ -1,0 +1,161 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "Graphe.h"
+#include "precedence.h"
+#include <string.h>
+
+// Création file
+
+struct _cellule {
+    int element;
+    struct _cellule *suivant;
+};
+typedef struct _cellule * Cellule;
+struct _file {
+    int longueur;
+    Cellule tete;
+    Cellule queue;
+};
+typedef struct _file * File;
+
+File fileVide(File F) {
+    F = (File) malloc(sizeof(struct _file));
+    if (F == NULL) printf("erreur allocation fileVide");
+    F->longueur = 0;
+    F->tete = F->queue = NULL;
+    return(F);
+}
+
+int longueur(File F) {
+    if (F == NULL) printf("file existe pas - longueur");
+    return (F->longueur);
+}
+
+void enfiler(File F, int element) {
+    Cellule cellule;
+    if (F == NULL) printf ("file n'existe pas - enfiler");
+    cellule = (Cellule)malloc(sizeof(struct _cellule));
+    if (cellule == NULL) printf("erreur allocation memoire - enfiler");
+    cellule->element = element;
+    cellule->suivant = NULL;
+    if (longueur(F) == 0){
+        F->tete = F->queue = cellule;
+    }
+    else {
+        F->queue->suivant = cellule;
+        F->queue = cellule;
+    }
+    ++(F->longueur);
+}
+
+int defiler(File F) {
+    Cellule cellule;
+    int element;
+    if (F == NULL || longueur(F) == 0) printf("File existe pas - defilement");
+    cellule = F->tete;
+    element = cellule->element;
+    if (longueur(F) == 1){
+        F->tete = F->queue = NULL;
+    }
+    else {
+        F->tete = F->tete->suivant;
+    }
+    free(cellule);
+    --(F->longueur);
+    return(element);
+}
+
+
+/// VOICI NOTRE CODE POUR LE TP2
+
+void BFS_parcours_en_largeur(Graphe* graphe,int Sommet_depart, int Sommet_fin){
+    int Nouveau_sommet_traite, Sommet_suivant;
+    pArc Arc_traite;
+
+    // Création d'une file vide
+    File File_graphe=fileVide(File_graphe);
+
+    /// Création du tableau de marquage pour identifier les sommets visités et initialisation à 0
+    int * Marquage = (int*)malloc(graphe->ordre * sizeof(int));
+    for (int i=0;i<graphe->ordre;i++) Marquage[i]=0;
+
+    /// On enfile et on marque le sommet de départ
+    enfiler(File_graphe,Sommet_depart);
+    Marquage[Sommet_depart]=1;
+    printf("\n(BFS) : ");
+
+    ///Traitement du sommet suivant
+    while (File_graphe->tete != NULL){
+        Nouveau_sommet_traite= defiler(File_graphe);
+        Arc_traite=graphe->pSommet[Nouveau_sommet_traite]->arc;
+
+        /// Condition d'arrêt si le sommet de fin de parcours est inférieur à l'ordre du graphe
+        if (Nouveau_sommet_traite<=Sommet_fin) {
+            printf("%d-",Nouveau_sommet_traite);
+
+            /// Parcours du graphe en largeur et marquage des sommets traités
+            while (Arc_traite != NULL) {
+                Sommet_suivant = Arc_traite->sommet;
+                if (Marquage[Sommet_suivant] == 0) {
+                    enfiler(File_graphe, Sommet_suivant);
+                    Marquage[Sommet_suivant] = 1;
+                }
+                Arc_traite=Arc_traite->arc_suivant;
+            }
+        }
+    }
+    free(File_graphe);
+}
+
+// ... (les structures et fonctions précédentes)
+
+// Fonction pour calculer le temps total pour chaque sommet en utilisant BFS
+void calculateTimeFromBFS(const Edge *graph, int numEdges, const duree *sommets, int numSommets) {
+    // Créer le graphe
+    Graphe *graphe = creerGraphe(numSommets);
+
+    // Ajouter les arcs au graphe
+    for (int i = 0; i < numEdges; i++) {
+        ajouterArc(graphe, graph[i].from, graph[i].to);
+    }
+
+    // Supposons que Sommet_depart soit 0 (premier sommet)
+    int Sommet_depart = 0;
+    int Sommet_fin = numSommets - 1;  // Le dernier sommet
+
+    // Appeler la fonction BFS pour calculer les temps de chaque chemin
+    BFS_parcours_en_largeur(graphe, Sommet_depart, Sommet_fin);
+
+    // Libérer la mémoire allouée pour le graphe
+    detruireGraphe(graphe);
+}
+
+int main() {
+    const char *filename = "precedences.txt";
+    Edge *graph;
+    int numEdges;
+    FILE *fichier = fopen("operation.txt", "r");
+
+    // ... (le reste de votre code)
+
+    if (readPrecedences(filename, &graph, &numEdges)) {
+        struct Sommet sommets[100];
+        size_t i = 0;
+
+        while (fscanf(fichier, "%d %lf", &sommets[i].numero, &sommets[i].duree) == 2) {
+            i++;
+        }
+
+        // ... (le reste de votre code)
+
+        // Calculer le temps pour chaque chemin en utilisant BFS
+        calculateTimeFromBFS(graph, numEdges, sommets, i);
+
+        // Libérer la mémoire allouée pour le graphe
+        free(graph);
+
+        // ... (le reste de votre code)
+    } else {
+        return 1;  // Code d'erreur
+    }
+}
