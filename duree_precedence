@@ -3,36 +3,39 @@
 
 // Structure pour représenter un arc du graphe de précédence
 typedef struct {
-    int from;
-    int to;
-} Edge;
+    int sommetdepart;
+    int sommetarrivee;
+} Arc;
+
 //structure durée tache
 typedef struct Sommet {
-    int numero;
+    int numerosommet;
     double duree;
 }duree;
-// Fonction pour lire le fichier et construire le graphe
-int readPrecedences(const char *filename, Edge **graph, int *numEdges) {
-    FILE *file = fopen(filename, "r");
+
+
+    // Fonction pour lire le fichier et construire le graphe
+    int readPrecedences(const char *precedence, Arc **graph, int *numEdges) {
+    FILE *file = fopen(precedence, "r");
     if (file == NULL) {
-        fprintf(stderr, "Erreur lors de l'ouverture du fichier %s.\n", filename);
+        fprintf(stderr, "Erreur lors de l'ouverture du fichier %s.\n", precedence);
         return 0;
     }
 
-    int from, to;
-    int maxEdgeCount = 10;  // Initialisation arbitraire de la capacité du tableau
-    *graph = malloc(maxEdgeCount * sizeof(Edge));
+    int sommetdepart, sommetarrivee;
+    int maxarc = 0;  // Initialisation arbitraire de la capacité du tableau
+    *graph = malloc(maxarc * sizeof(Arc));
     *numEdges = 0;
 
-    while (fscanf(file, "%d %d", &from, &to) == 2) {
-        if (*numEdges == maxEdgeCount) {
+    while (fscanf(file, "%d %d", &sommetdepart, &sommetarrivee) == 2) {
+        if (*numEdges == maxarc) {
             // Agrandir le tableau si nécessaire
-            maxEdgeCount *= 2;
-            *graph = realloc(*graph, maxEdgeCount * sizeof(Edge));
+            maxarc *= 2;
+            *graph = realloc(*graph, maxarc * sizeof(Arc));
         }
 
-        (*graph)[*numEdges].from = from;
-        (*graph)[*numEdges].to = to;
+        (*graph)[*numEdges].sommetdepart = sommetdepart;
+        (*graph)[*numEdges].sommetarrivee = sommetarrivee;
         (*numEdges)++;
     }
 
@@ -40,61 +43,61 @@ int readPrecedences(const char *filename, Edge **graph, int *numEdges) {
     return 1;
 }
 
-// Fonction pour afficher le graphe de précédence
 // Fonction pour afficher le graphe de précédence avec les durées associées
-void printGraph(const Edge *graph, int numEdges, const duree *sommets, int numSommets) {
-    printf("Graphe de précédence :\n");
+void printGraph(const Arc *graph, int numEdges, const duree *sommets, int numSommets) {
+    printf("Graphe de precedence :\n");
     for (int i = 0; i < numEdges; i++) {
         // Trouver la durée associée au sommet 'to'
         double dureeTo = -1.0;  // Valeur par défaut si le sommet n'est pas trouvé
         for (int j = 0; j < numSommets; j++) {
-            if (graph[i].to == sommets[j].numero) {
+            if (graph[i].sommetarrivee == sommets[j].numerosommet) {
                 dureeTo = sommets[j].duree;
                 break;
             }
         }
 
-        printf("%d -> %d, duree : %g\n", graph[i].from, graph[i].to, dureeTo);
+        printf("%d -> %d, duree : %g\n", graph[i].sommetdepart, graph[i].sommetarrivee, dureeTo);
     }
 }
 
 int main() {
-    const char *filename = "precedences.txt";
-    Edge *graph;
-    int numEdges;
-    FILE *fichier = fopen("operation.txt", "r");
 
-    // Vérifier si le fichier est ouvert avec succès
-    if (fichier == NULL) {
-        fprintf(stderr, "Erreur lors de l'ouverture du fichier.\n");
-        return 1; // Quitter le programme avec un code d'erreur
-    }
-    if (readPrecedences(filename, &graph, &numEdges)) {
-        //printGraph(graph, numEdges, sommets, i);
-        free(graph);  // Libérer la mémoire allouée pour le graphe
-        struct Sommet sommets[100]; // Supposons que vous ne dépasserez pas 100 sommets
-        size_t i = 0;
-
-        while (fscanf(fichier, "%d %lf", &sommets[i].numero, &sommets[i].duree) == 2) {
-            i++;
+        //ouverture des fichiers
+        FILE *fichier = fopen("operation.txt", "r");
+        if (fichier == NULL) {
+            fprintf(stderr, "Erreur lors de l'ouverture du fichier.\n");
+            return 1;
         }
 
-        // Fermer le fichier après la lecture
-        fclose(fichier);
+        const char *filename = "precedences.txt";
+        Arc *graph;
+        int numeroarc;
 
-        // Afficher le tableau
+        if (readPrecedences(filename, &graph, &numeroarc)) {
+
+            struct Sommet sommets[100]; // Supposons que vous ne dépasserez pas 100 sommets
+            size_t i = 0;
+
+            while (fscanf(fichier, "%d %lf", &sommets[i].numerosommet, &sommets[i].duree) == 2) {
+                i++;
+            }
+
+        /* Affichage du tableau contenant chaque sommet avec son temps d'éxécution associé
         printf("| Sommet | Duree |\n");
         printf("|--------|-------|\n");
         for (size_t j = 0; j < i; ++j) {
-            printf("| %-6d | %-5.2f |\n", sommets[j].numero, sommets[j].duree);
+            printf("| %-6d | %-5.2f |\n", sommets[j].numerosommet, sommets[j].duree);
+        }*/
+
+            printGraph(graph, numeroarc, sommets, i);
+
+            // Libérer la mémoire allouée pour le graphe
+            free(graph);
+
+            // Optimisation de la mémoire
+            fclose(fichier);
+
+            return 0;
         }
-        printGraph(graph, numEdges, sommets, i);
-
-
-        return 0;
-    } else {
-        return 1;  // Code d'erreur
     }
-}
-
 
