@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+ 
 // Structure pour représenter un arc du graphe de précédence
 typedef struct {
     int sommetdepart;
