@@ -40,7 +40,7 @@ int readPrecedences(const char *precedence, Arc **graph, int *numEdges) {
             *graph = realloc(*graph, maxarc * sizeof(Arc));
 
             if (*graph == NULL) {
-                fprintf(stderr, "Erreur lors de l'allocation de mémoire pour le graphe.\n");
+                fprintf(stderr, "Erreur lors de l'allocation de memoire pour le graphe.\n");
                 fclose(file);
                 return 0;
             }
@@ -57,7 +57,7 @@ int readPrecedences(const char *precedence, Arc **graph, int *numEdges) {
 
 // Fonction pour afficher le graphe de précédence avec les durées associées
 void printGraph(const Arc *graph, int numEdges, const Duree *sommets, int numSommets) {
-    printf("Graphe de précédence :\n");
+    printf("Graphe de precedence :\n");
     for (int i = 0; i < numEdges; i++) {
         // Trouver la durée associée au sommet 'to'
         double dureeTo = -1.0;  // Valeur par défaut si le sommet n'est pas trouvé
@@ -68,7 +68,7 @@ void printGraph(const Arc *graph, int numEdges, const Duree *sommets, int numSom
             }
         }
 
-        printf("%d -> %d, durée : %g\n", graph[i].sommetdepart, graph[i].sommetarrivee, dureeTo);
+        printf("%d -> %d, duree : %g\n", graph[i].sommetdepart, graph[i].sommetarrivee, dureeTo);
     }
 }
 
