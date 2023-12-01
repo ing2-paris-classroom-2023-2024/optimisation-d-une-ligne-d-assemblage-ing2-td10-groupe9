@@ -13,6 +13,13 @@ typedef struct {
     double duree;
 } Duree;
 
+// Structure pour représenter une station avec des opérations
+typedef struct {
+    int *operations;
+    int nombreOperations;
+    double tempsCycleDisponible;
+} StationAvecOperations;
+
 // Fonction pour lire le fichier et construire le graphe
 int readPrecedences(const char *precedence, Arc **graph, int *numEdges) {
     FILE *file = fopen(precedence, "r");
@@ -72,6 +79,71 @@ void printGraph(const Arc *graph, int numEdges, const Duree *sommets, int numSom
     }
 }
 
+// Fonction pour lire le temps de cycle maximal à partir du fichier
+double readMaxCycleTime(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "Erreur lors de l'ouverture du fichier %s.\n", filename);
+        exit(1);
+    }
+
+    double maxCycleTime;
+    if (fscanf(file, "%lf", &maxCycleTime) != 1) {
+        fprintf(stderr, "Erreur lors de la lecture du temps de cycle maximal.\n");
+        fclose(file);
+        exit(1);
+    }
+
+    fclose(file);
+    return maxCycleTime;
+}
+
+// Fonction pour attribuer les opérations aux stations
+void attribuerOperationsAStations(StationAvecOperations *stations, int nombreStations, const Duree *sommets, int numSommets, const Arc *graph, int numEdges, double tempsCycleMax) {
+    // Parcourir les opérations par ordre
+    for (int i = 0; i < numSommets; i++) {
+        int operation = sommets[i].numerosommet;
+        double dureeOperation = sommets[i].duree;
+
+        // Trouver la station avec le temps de cycle disponible le plus proche de la durée de l'opération
+        int meilleureStation = -1;
+        double tempsCycleMin = tempsCycleMax;
+
+        for (int j = 0; j < nombreStations; j++) {
+            if (stations[j].tempsCycleDisponible >= dureeOperation && stations[j].tempsCycleDisponible < tempsCycleMin) {
+                meilleureStation = j;
+                tempsCycleMin = stations[j].tempsCycleDisponible;
+            }
+        }
+
+        // Si une station appropriée est trouvée, attribuer l'opération à la station
+        if (meilleureStation != -1) {
+            // Mettre à jour le temps de cycle de la station
+            stations[meilleureStation].tempsCycleDisponible -= dureeOperation;
+
+            // Ajouter l'opération à la liste des opérations de la station
+            stations[meilleureStation].nombreOperations++;
+            stations[meilleureStation].operations = realloc(stations[meilleureStation].operations, stations[meilleureStation].nombreOperations * sizeof(int));
+            stations[meilleureStation].operations[stations[meilleureStation].nombreOperations - 1] = operation;
+        } else {
+            // Si aucune station appropriée n'est trouvée, ajouter une nouvelle station
+            for (int j = 0; j < nombreStations; j++) {
+                if (stations[j].tempsCycleDisponible == 0.0) {
+                    // Réinitialiser le temps de cycle de la station
+                    stations[j].tempsCycleDisponible = tempsCycleMax - dureeOperation;
+
+                    // Ajouter l'opération à la liste des opérations de la station
+                    stations[j].nombreOperations++;
+                    stations[j].operations = realloc(stations[j].operations, stations[j].nombreOperations * sizeof(int));
+                    stations[j].operations[stations[j].nombreOperations - 1] = operation;
+
+                    break;
+                }
+            }
+        }
+    }
+}
+
 int main() {
     FILE *fichier = fopen("operations.txt", "r");
     if (fichier == NULL) {
@@ -91,14 +163,46 @@ int main() {
             i++;
         }
 
-        printGraph(graph, numeroarc, sommets, i);
+        // Obtention du temps de cycle maximal à partir du fichier
+        const char *cycleTimeFile = "temps_cycle.txt";
+        double tempsCycleMax = readMaxCycleTime(cycleTimeFile);
 
-        // Libérer la mémoire allouée pour le graphe
+        // Création et initialisation des stations
+        int nombreStations = 2; // À ajuster en fonction de votre besoin
+        StationAvecOperations *stations = malloc(nombreStations * sizeof(StationAvecOperations));
+
+        for (int j = 0; j < nombreStations; j++) {
+            stations[j].operations = NULL;
+            stations[j].nombreOperations = 0;
+            stations[j].tempsCycleDisponible = 0.0;
+        }
+
+        // Parcours du graphe pour attribuer les opérations aux stations
+        attribuerOperationsAStations(stations, nombreStations, sommets, i, graph, numeroarc, tempsCycleMax);
+
+        // Affichage des stations avec précédence et temps de cycle
+        for (int j = 0; j < nombreStations; j++) {
+            printf("Station %d:\n", j + 1);
+            printf("Operations : ");
+            for (int k = 0; k < stations[j].nombreOperations; k++) {
+                printf("%d ", stations[j].operations[k]);
+            }
+            printf("\nTemps de cycle disponible : %f\n", stations[j].tempsCycleDisponible);
+            printf("\n");
+        }
+
+        // Libération de la mémoire allouée pour le graphe et les stations
         free(graph);
+        for (int j = 0; j < nombreStations; j++) {
+            free(stations[j].operations);
+        }
+        free(stations);
 
         // Fermer le fichier
         fclose(fichier);
 
         return 0;
     }
+
+    return 1;
 }
