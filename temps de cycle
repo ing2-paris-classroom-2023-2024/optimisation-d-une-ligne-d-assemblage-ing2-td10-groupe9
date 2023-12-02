@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
- 
+
 // Structure pour représenter un arc du graphe de précédence
 typedef struct {
     int sommetdepart;
@@ -61,7 +61,7 @@ int readPrecedences(const char *precedence, Arc **graph, int *numEdges) {
     fclose(file);
     return 1;
 }
-
+/*
 // Fonction pour afficher le graphe de précédence avec les durées associées
 void printGraph(const Arc *graph, int numEdges, const Duree *sommets, int numSommets) {
     printf("Graphe de precedence :\n");
@@ -77,7 +77,7 @@ void printGraph(const Arc *graph, int numEdges, const Duree *sommets, int numSom
 
         printf("%d -> %d, duree : %g\n", graph[i].sommetdepart, graph[i].sommetarrivee, dureeTo);
     }
-}
+}*/
 
 // Fonction pour lire le temps de cycle maximal à partir du fichier
 double readMaxCycleTime(const char *filename) {
@@ -99,10 +99,26 @@ double readMaxCycleTime(const char *filename) {
 }
 
 // Fonction pour attribuer les opérations aux stations
-void attribuerOperationsAStations(StationAvecOperations *stations, int nombreStations, const Duree *sommets, int numSommets, const Arc *graph, int numEdges, double tempsCycleMax) {
+void attribuerOperationsAStations(StationAvecOperations *stations, int nombreStations, const Duree *sommets, int numSommets, const Arc *graph, int numEdges, const char *operationFile, double tempsCycleMax) {
     // Tableau pour stocker l'ordre des opérations en fonction des précédences
     int *ordreOperations = malloc(numSommets * sizeof(int));
     int *indegree = calloc(numSommets, sizeof(int));
+
+    // Lire les sommets existants à partir du fichier "operation.txt"
+    FILE *fichier = fopen(operationFile, "r");
+    if (fichier == NULL) {
+        fprintf(stderr, "Erreur lors de l'ouverture du fichier operation.txt.\n");
+        exit(1);
+    }
+
+    int sommetsExistants[100]; // Supposons que vous ne dépasserez pas 100 sommets
+    int numSommetsExistants = 0;
+
+    while (fscanf(fichier, "%d %*f", &sommetsExistants[numSommetsExistants]) == 1) {
+        numSommetsExistants++;
+    }
+
+    fclose(fichier);
 
     // Calculer le degré d'entrée de chaque sommet
     for (int i = 0; i < numEdges; i++) {
@@ -133,43 +149,47 @@ void attribuerOperationsAStations(StationAvecOperations *stations, int nombreSta
     free(indegree);
 
     // Parcourir les opérations par ordre
-    for (int i = 0; i < numSommets; i++) {
-        int operation = ordreOperations[i] - 1; // L'indice du tableau commence à 0
-        double dureeOperation = sommets[operation].duree;
+    for (int i = 0; i < numSommetsExistants; i++) {
+        int operationIndex = sommetsExistants[i] - 1; // L'indice du tableau commence à 0
 
-        // Trouver la station avec le temps de cycle disponible le plus proche de la durée de l'opération
-        int meilleureStation = -1;
-        double tempsCycleMin = tempsCycleMax;
+        // Vérifier si le sommet existe
+        if (operationIndex >= 0 && operationIndex < numSommets) {
+            double dureeOperation = sommets[operationIndex].duree;
 
-        for (int j = 0; j < nombreStations; j++) {
-            if (stations[j].tempsCycleDisponible >= dureeOperation && stations[j].tempsCycleDisponible < tempsCycleMin) {
-                meilleureStation = j;
-                tempsCycleMin = stations[j].tempsCycleDisponible;
-            }
-        }
+            // Trouver la station avec le temps de cycle disponible le plus proche de la durée de l'opération
+            int meilleureStation = -1;
+            double tempsCycleMin = tempsCycleMax;
 
-        // Si une station appropriée est trouvée, attribuer l'opération à la station
-        if (meilleureStation != -1) {
-            // Mettre à jour le temps de cycle de la station
-            stations[meilleureStation].tempsCycleDisponible -= dureeOperation;
-
-            // Ajouter l'opération à la liste des opérations de la station
-            stations[meilleureStation].nombreOperations++;
-            stations[meilleureStation].operations = realloc(stations[meilleureStation].operations, stations[meilleureStation].nombreOperations * sizeof(int));
-            stations[meilleureStation].operations[stations[meilleureStation].nombreOperations - 1] = ordreOperations[i];
-        } else {
-            // Si aucune station appropriée n'est trouvée, ajouter une nouvelle station
             for (int j = 0; j < nombreStations; j++) {
-                if (stations[j].tempsCycleDisponible == 0.0) {
-                    // Réinitialiser le temps de cycle de la station
-                    stations[j].tempsCycleDisponible = tempsCycleMax - dureeOperation;
+                if (stations[j].tempsCycleDisponible >= dureeOperation && stations[j].tempsCycleDisponible < tempsCycleMin) {
+                    meilleureStation = j;
+                    tempsCycleMin = stations[j].tempsCycleDisponible;
+                }
+            }
 
-                    // Ajouter l'opération à la liste des opérations de la station
-                    stations[j].nombreOperations++;
-                    stations[j].operations = realloc(stations[j].operations, stations[j].nombreOperations * sizeof(int));
-                    stations[j].operations[stations[j].nombreOperations - 1] = ordreOperations[i];
+            // Si une station appropriée est trouvée, attribuer l'opération à la station
+            if (meilleureStation != -1) {
+                // Mettre à jour le temps de cycle de la station
+                stations[meilleureStation].tempsCycleDisponible -= dureeOperation;
 
-                    break;
+                // Ajouter l'opération à la liste des opérations de la station
+                stations[meilleureStation].nombreOperations++;
+                stations[meilleureStation].operations = realloc(stations[meilleureStation].operations, stations[meilleureStation].nombreOperations * sizeof(int));
+                stations[meilleureStation].operations[stations[meilleureStation].nombreOperations - 1] = operationIndex + 1;
+            } else {
+                // Si aucune station appropriée n'est trouvée, ajouter une nouvelle station
+                for (int j = 0; j < nombreStations; j++) {
+                    if (stations[j].tempsCycleDisponible == 0.0) {
+                        // Réinitialiser le temps de cycle de la station
+                        stations[j].tempsCycleDisponible = tempsCycleMax - dureeOperation;
+
+                        // Ajouter l'opération à la liste des opérations de la station
+                        stations[j].nombreOperations++;
+                        stations[j].operations = realloc(stations[j].operations, stations[j].nombreOperations * sizeof(int));
+                        stations[j].operations[stations[j].nombreOperations - 1] = operationIndex + 1;
+
+                        break;
+                    }
                 }
             }
         }
@@ -178,6 +198,7 @@ void attribuerOperationsAStations(StationAvecOperations *stations, int nombreSta
     // Libérer la mémoire allouée pour l'ordre des opérations
     free(ordreOperations);
 }
+
 
 int main() {
     FILE *fichier = fopen("operation.txt", "r");
@@ -215,7 +236,7 @@ int main() {
         }
 
         // Parcours du graphe pour attribuer les opérations aux stations
-        attribuerOperationsAStations(stations, nombreStations, sommets, i, graph, numeroarc, tempsCycleMax);
+        attribuerOperationsAStations(stations, nombreStations, sommets, i, graph, numeroarc, "operation.txt", tempsCycleMax);
 
         // Affichage des stations avec précédence et temps de cycle
         for (int j = 0; j < nombreStations; j++) {
