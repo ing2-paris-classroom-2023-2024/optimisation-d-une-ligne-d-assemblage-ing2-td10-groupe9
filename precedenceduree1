@@ -1,0 +1,227 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAXIMUM_SOMMETS 100
+#define MAXIMUM_EXCLUSIONS 100
+
+
+typedef struct {
+    int sommet;
+    double temps;
+    int position;
+    int nombrePredecesseurs;
+    int* predecesseurs;
+} Sommet;
+
+typedef struct {
+    int station;
+    int* sommet_station;
+    int nombreSommets;
+    int temps_restant;
+} Station;
+
+
+int exclu(int som1, int som2, int** exclusions, int nb_exclusions) {
+    for (int i = 0; i < nb_exclusions; i++) {
+        if ((exclusions[i][0] == som1 && exclusions[i][1] == som2) || (exclusions[i][0] == som2 && exclusions[i][1] == som1)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int predecesseur(Sommet* sommet, int id, int nombreStations, Station* stations)
+{
+    // verifier qu'un sommet n'est pas prédécesseur d'un sommet qui n'est pas dans la station en cours ou les précédentes
+    int nb_trouve=0;
+    for (int i = 0; i < nombreStations; i++) // on percourt les stations existantes
+    {
+        for (int j=0; j < stations[i].nombreSommets; j++) // on parcourt les sommets de chaque stations
+        {
+            for (int k=0; k < sommet[id].nombrePredecesseurs;k++) // on parcourt les predecesseurs du sommet recherché
+            {
+                if (stations[i].sommet_station[j] == sommet[id].predecesseurs[k])
+                {
+                    nb_trouve++;
+                }
+            }
+        }
+    }
+    if (sommet[id].nombrePredecesseurs==nb_trouve)
+    {
+        return 0;
+    }
+    return 1;
+}
+
+void groupeSommet(Sommet* sommet_station, int nombreSommets, int Tzero, int** exclusions, int nb_exclusions) {
+    Station* stations = malloc(MAXIMUM_SOMMETS * sizeof(Station));
+    int nombreStations = 0;
+    int t_stations;
+    int* predecesseurs = malloc(MAXIMUM_SOMMETS * sizeof(int));
+    int nbSommetPos = 0;
+    int positionne_ce_tour=0;
+    int i = 0;
+    int iteration=0;
+
+    while (nbSommetPos<nombreSommets) // tant que tous les somments ne sont pas positionnés dans une station, on continue
+    {
+
+        if (i>nombreSommets) // en fin de boucle on revient au début
+        {
+            if (positionne_ce_tour==0) // si un tour à vide, on ajoute une station
+            {
+                stations[nombreStations].station = nombreStations+1;
+                stations[nombreSommets].sommet_station = malloc(MAXIMUM_SOMMETS * sizeof(int));
+                stations[nombreStations].nombreSommets = 0;
+                stations[nombreStations].temps_restant = Tzero;
+                nombreStations++;
+            }
+            positionne_ce_tour=0;
+            i=0;
+        }
+        while (sommet_station[i].position==1) // on passe les sommets déjà positionnées lors des boucles précédentes
+        {
+            i++;
+        }
+
+        int sommet = sommet_station[i].sommet;
+        int temps = sommet_station[i].temps;
+
+        for (int j = 0; j<nombreStations&&i>0; j++)
+        {
+            if (!predecesseur(sommet_station, i, j+1, stations))
+            {
+                if (temps <= stations[j].temps_restant && !exclu(sommet, stations[j].sommet_station[0], exclusions, nb_exclusions)&& sommet>0)
+                {
+                    positionne_ce_tour++;
+                    nbSommetPos++;
+                    stations[j].sommet_station[stations[j].nombreSommets] = sommet;
+                    sommet_station[i].position=1;
+                    stations[j].nombreSommets++;
+                    stations[j].temps_restant = stations[j].temps_restant - temps;
+
+                    break;
+                }
+            }
+            if (sommet_station[i].position==1) break;
+        }
+        // cas particulier de la première itération : on crée la première station
+
+        if (i==0&&positionne_ce_tour==0&&sommet_station[i].position==0)
+        {
+            stations[0].station = 1;
+            stations[0].sommet_station = malloc(MAXIMUM_SOMMETS * sizeof(int));
+            stations[0].sommet_station[0] = sommet;
+            stations[0].nombreSommets = 1;
+            stations[0].temps_restant = Tzero-temps;
+            sommet_station[0].position=1;
+            nbSommetPos++;
+            nombreStations++;
+            printf("Le sommet %d se positionne dans station %d\n",sommet, nombreStations);
+        }
+
+        i++;
+    }
+    printf("affichage resultat\n");
+    for (int i = 0; i < nombreStations; i++)
+    {
+        t_stations = (Tzero-stations[i].temps_restant);
+        printf("Station %d (%d.%02ds): ", stations[i].station, t_stations/100, t_stations%100 );
+        for (int j = 0; j < stations[i].nombreSommets; j++)
+        {
+            printf("%d ", stations[i].sommet_station[j]);
+        }
+        printf("\n");
+    }
+
+    free(predecesseurs);
+    for (int i = 0; i < nombreStations; i++) {
+        free(stations[i].sommet_station);
+    }
+    free(stations);
+}
+
+int main() {
+    FILE* file_precedences = fopen("precedences.txt", "r");
+    FILE* file_temps = fopen("operations.txt", "r");
+    FILE* file_exclusions = fopen("exclusion.txt", "r");
+
+    Sommet* sommet_station = malloc(MAXIMUM_SOMMETS * sizeof(Sommet));
+    int nombreSommets = 0;
+
+    int Tzero;
+
+    int** exclusions = malloc(MAXIMUM_EXCLUSIONS * sizeof(int*));
+    int nb_exclusions = 0;
+
+    // Lire le fichier temps.txt
+    if (file_temps != NULL)
+    {
+        int sommet;
+        double temps;
+        while (fscanf(file_temps, "%d %lf", &sommet, &temps) == 2)
+        {
+            // Mettre à jour le temps des sommets correspondants
+            sommet_station[nombreSommets].sommet=sommet;
+            sommet_station[nombreSommets].temps=temps;
+            sommet_station[nombreSommets].position=0;
+            sommet_station[nombreSommets].nombrePredecesseurs = 0;
+            sommet_station[nombreSommets].predecesseurs = malloc(sommet_station[nombreSommets].nombrePredecesseurs * sizeof(int)); // Allocation de mémoire pour le tableau
+            nombreSommets++;
+
+        }
+        fclose(file_temps);
+    }
+
+    // Lire le fichier precedences.txt
+    if (file_precedences != NULL) {
+        int som1, som2;
+        while (fscanf(file_precedences, "%d %d", &som1, &som2) == 2)
+        {
+            // Ajouter les predecesseurs du sommet en cours
+            for (int i = 0; i < nombreSommets; i++)
+            {
+                if (sommet_station[i].sommet == som2)
+                {
+                    sommet_station[i].predecesseurs[sommet_station[i].nombrePredecesseurs]=som1;
+                    sommet_station[i].nombrePredecesseurs++;
+                    break;
+                }
+            }
+        }
+        fclose(file_precedences);
+    }
+
+    // Lire le fichier exclusions.txt
+    if (file_exclusions != NULL) {
+        int som1, som2;
+        while (fscanf(file_exclusions, "%d %d", &som1, &som2) == 2) {
+            // Ajouter les exclusions à la liste des exclusions
+            exclusions[nb_exclusions] = malloc(2 * sizeof(int));
+            exclusions[nb_exclusions][0] = som1;
+            exclusions[nb_exclusions][1] = som2;
+            nb_exclusions++;
+        }
+        fclose(file_exclusions);
+    }
+
+    // Lire le fichier temps_cycle.txt pour obtenir la valeur de T0
+    FILE* file_temps_cycle = fopen("temps_cycle.txt", "r");
+    if (file_temps_cycle != NULL) {
+        fscanf(file_temps_cycle, "%d", &Tzero);
+        fclose(file_temps_cycle);
+    }
+    printf("temps par cycle : %ds\n\n",Tzero/100);
+    // Regrouper les sommets par station
+    groupeSommet(sommet_station, nombreSommets, Tzero, exclusions, nb_exclusions);
+
+    // Libérer la mémoire allouée
+    for (int i = 0; i < nb_exclusions; i++) {
+        free(exclusions[i]);
+    }
+    free(exclusions);
+    free(sommet_station);
+
+    return 0;
+}
