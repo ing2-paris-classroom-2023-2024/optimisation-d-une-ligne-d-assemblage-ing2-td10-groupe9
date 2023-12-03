@@ -2,163 +2,160 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// Définition de la structure Node
-struct Node {
-    int vertex;
-    struct Node* next;
+// définition de toutes les structures
+
+struct Noeud {
+    int sommet;
+    struct Noeud* suivant;
+};
+// graphe
+struct Graphe {
+    int numSommets;
+    struct Noeud** listesAdj;
+};
+// degre des sommets
+struct DegreSommet {
+    int sommet;
+    int degre;
 };
 
-// Définition de la structure Graph
-struct Graph {
-    int numVertices;
-    struct Node** adjLists;
-};
-
-// Structure pour le degré des sommets
-struct VertexDegree {
-    int vertex;
-    int degree;
-};
-
-// Création d'un nouveau nœud
-struct Node* createNode(int v) {
-    struct Node* newNode = malloc(sizeof(struct Node));
-    newNode->vertex = v;
-    newNode->next = NULL;
-    return newNode;
+// creation nouveau noeud
+struct Noeud* creerNoeud(int v) {
+    struct Noeud* nouveauNoeud = malloc(sizeof(struct Noeud));
+    nouveauNoeud->sommet = v;
+    nouveauNoeud->suivant = NULL;
+    return nouveauNoeud;
 }
 
-// Création d'un graphe
-struct Graph* createGraph(int vertices) {
-    struct Graph* graph = malloc(sizeof(struct Graph));
-    graph->numVertices = vertices;
+// fonction pour creer un graphe
+struct Graphe* creerGraphe(int sommets) {
+    struct Graphe* graphe = malloc(sizeof(struct Graphe));
+    graphe->numSommets = sommets;
 
-    graph->adjLists = malloc(vertices * sizeof(struct Node*));
-    for (int i = 0; i < vertices; i++) {
-        graph->adjLists[i] = NULL;
+    graphe->listesAdj = malloc(sommets * sizeof(struct Noeud*));
+    for (int i = 0; i < sommets; i++) {
+        graphe->listesAdj[i] = NULL;
     }
-    return graph;
+    return graphe;
 }
 
-// Ajout d'une arête au graphe
-void addEdge(struct Graph* graph, int src, int dest) {
-    src--; // Ajuster pour l'indexation à partir de 0
-    dest--;
+// fonction pour ajouter une arete au graphe
+void ajouterArete(struct Graphe* graphe, int depart, int arrivee) {
+    depart--; // a partir de 0
+    arrivee--;
 
-    struct Node* newNode = createNode(dest);
-    newNode->next = graph->adjLists[src];
-    graph->adjLists[src] = newNode;
+    struct Noeud* nouveauNoeudSrc = creerNoeud(arrivee);
+    nouveauNoeudSrc->suivant = graphe->listesAdj[depart];
+    graphe->listesAdj[depart] = nouveauNoeudSrc;
 
-    newNode = createNode(src);
-    newNode->next = graph->adjLists[dest];
-    graph->adjLists[dest] = newNode;
+    struct Noeud* nouveauNoeudDest = creerNoeud(depart);
+    nouveauNoeudDest->suivant = graphe->listesAdj[arrivee];
+    graphe->listesAdj[arrivee] = nouveauNoeudDest;
 }
 
-// Fonction pour calculer le degré de chaque sommet
-void calculateDegrees(struct Graph* graph, struct VertexDegree degrees[]) {
-    for (int i = 0; i < graph->numVertices; i++) {
-        struct Node* temp = graph->adjLists[i];
-        degrees[i].vertex = i;
-        degrees[i].degree = 0;
+
+// fonction pour calculer le degre de chaque sommet
+void calculerDegres(struct Graphe* graphe, struct DegreSommet degres[]) {
+    for (int i = 0; i < graphe->numSommets; i++) {
+        struct Noeud* temp = graphe->listesAdj[i];
+        degres[i].sommet = i;
+        degres[i].degre = 0;
         while (temp) {
-            degrees[i].degree++;
-            temp = temp->next;
+            degres[i].degre++;
+            temp = temp->suivant;
         }
     }
 }
-// Fonction de comparaison pour le tri
-int compareDegrees(const void* a, const void* b) {
-    struct VertexDegree* a1 = (struct VertexDegree*)a;
-    struct VertexDegree* b1 = (struct VertexDegree*)b;
-    return b1->degree - a1->degree;
+
+// fonction de comparaison pour le tri
+int comparerDegres(const void* a, const void* b) {
+    struct DegreSommet* a1 = (struct DegreSommet*)a;
+    struct DegreSommet* b1 = (struct DegreSommet*)b;
+    return b1->degre - a1->degre;
 }
-// Coloriage du graphe selon l'algorithme de Welsh-Powell
-void colorGraphWelshPowell(struct Graph* graph) {
-    struct VertexDegree degrees[graph->numVertices];
-    calculateDegrees(graph, degrees);
 
-    qsort(degrees, graph->numVertices, sizeof(degrees[0]), compareDegrees);
+// fonction pour colorier le graphe selon l'algorithme de Welsh-Powell
+void colorierGrapheWelshPowell(struct Graphe* graphe) {
+    struct DegreSommet degres[graphe->numSommets];
+    calculerDegres(graphe, degres);
 
-    int color[graph->numVertices];
-    bool available[graph->numVertices];
+    qsort(degres, graphe->numSommets, sizeof(degres[0]), comparerDegres);
 
-    int maxColor = 0;
+    int couleur[graphe->numSommets];
+    bool disponible[graphe->numSommets];
 
-    for (int i = 0; i < graph->numVertices; i++) {
-        color[i] = -1;
-        available[i] = true;
+    int maxCouleur = 0;
+
+    for (int i = 0; i < graphe->numSommets; i++) {
+        couleur[i] = -1;
+        disponible[i] = true;
     }
 
-    for (int i = 0; i < graph->numVertices; i++) {
-        int u = degrees[i].vertex;
+    for (int i = 0; i < graphe->numSommets; i++) {
+        int u = degres[i].sommet;
 
-        struct Node* temp = graph->adjLists[u];
+        struct Noeud* temp = graphe->listesAdj[u];
         while (temp) {
-            if (color[temp->vertex] != -1) {
-                available[color[temp->vertex]] = false;
+            if (couleur[temp->sommet] != -1) {
+                disponible[couleur[temp->sommet]] = false;
             }
-            temp = temp->next;
+            temp = temp->suivant;
         }
 
         int cr;
-        for (cr = 0; cr < graph->numVertices; cr++) {
-            if (available[cr]) break;
+        for (cr = 0; cr < graphe->numSommets; cr++) {
+            if (disponible[cr]) break;
         }
 
-        color[u] = cr;
+        couleur[u] = cr;
 
-        for (int j = 0; j < graph->numVertices; j++) {
-            available[j] = true;
+        for (int j = 0; j < graphe->numSommets; j++) {
+            disponible[j] = true;
         }
 
-        if (cr > maxColor) {
-            maxColor = cr;
+        if (cr > maxCouleur) {
+            maxCouleur = cr;
         }
     }
 
-    // Affichage des stations
-
-
+    // affichage des stations
     printf("Optimisation en fonction de la contrainte d'exclusion : \n");
-    printf("Nombre optimal de stations : %d\n", maxColor + 1);
-    for (int i = 0; i <= maxColor; i++) {
-
+    printf("Nombre optimal de stations : %d\n", maxCouleur + 1);
+    for (int i = 0; i <= maxCouleur; i++) {
         printf("->WS%d(", i + 1);
-        for (int u = 0; u < graph->numVertices; u++) {
-            if (color[u] == i) {
+        for (int u = 0; u < graphe->numSommets; u++) {
+            if (couleur[u] == i) {
                 printf("%d, ", u + 1);
             }
         }
         printf(")\n");
     }
-
-
 }
 
-// Fonction principale
+// fonction principale
 int main() {
-    FILE *file = fopen("exclusion.txt", "r");
-    if (file == NULL) {
+    FILE *fichier = fopen("exclusion.txt", "r");
+    if (fichier == NULL) {
         printf("Erreur à l'ouverture du fichier\n");
         return -1;
     }
 
-    int maxIndex = 0;
+    int indexMax = 0;
     int src, dest;
-    while (fscanf(file, "%d %d", &src, &dest) != EOF) {
-        if (src > maxIndex) maxIndex = src;
-        if (dest > maxIndex) maxIndex = dest;
+    while (fscanf(fichier, "%d %d", &src, &dest) != EOF) {
+        if (src > indexMax) indexMax = src;
+        if (dest > indexMax) indexMax = dest;
     }
 
-    struct Graph* graph = createGraph(maxIndex + 1);
-    fseek(file, 0, SEEK_SET);
+    struct Graphe* graphe = creerGraphe(indexMax + 1);
+    fseek(fichier, 0, SEEK_SET);
 
-    while (fscanf(file, "%d %d", &src, &dest) != EOF) {
-        addEdge(graph, src, dest);
+    while (fscanf(fichier, "%d %d", &src, &dest) != EOF) {
+        ajouterArete(graphe, src, dest);
     }
 
-    colorGraphWelshPowell(graph);
+    colorierGrapheWelshPowell(graphe);
 
-    fclose(file);
+    fclose(fichier);
     return 0;
 }
